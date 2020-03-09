@@ -1,0 +1,14 @@
+{
+    "name": "ramphor/post-views",
+    "description": "Track visited posts and user view posts",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Ramphor Premium",
+            "email": "puleeno@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
