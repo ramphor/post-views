@@ -1,5 +1,4 @@
 <?php
-
 namespace Ramphor\PostViews;
 
 class Counter
@@ -17,30 +16,41 @@ class Counter
     public function register()
     {
         add_action('template_redirect', array($this, 'count'));
+        add_action('ramphor_post_views_track_history_handle', array($this, 'track'), 10, 5);
     }
 
-    public function count()
+    public function track($newViews, $currentViews, $userId, $post, $userPostViews)
     {
-        if (!is_single() || !$this->checkPostType(get_post_type(), $this->postTypes)) {
+        return $currentViews += 1;
+    }
+
+    public function count($post = null)
+    {
+        $post = ($post === null) ? $GLOBALS['post'] : get_post($post);
+        if (!is_single() || !$this->checkPostType($post->post_type, $this->postTypes)) {
             return;
         }
-        $post = $GLOBALS['post'];
-        $userId = $this->trackUserView ? 0 : get_current_user_id();
+
+        $userId = $this->trackUserView ? get_current_user_id() : 0;
         $userPostViews = Db::getUserViews(
             $userId,
             $post->ID,
             $post->post_type
         );
-        $views = 0;
+        $currentViews = 0;
         if (isset($userPostViews->views)) {
-            $views = (int)$userPostViews->views;
+            $currentViews = (int)$userPostViews->views;
         }
-        if (apply_filters('ramphor_post_views_track_history_visited', $this->trackHistory, $this->postTypes)) {
-            $views = apply_filters('ramphor_post_views_track_history_handle', $views + 1, $views, $this->postTypes);
-        } else {
-            $views++;
-        }
-        if (Db::updateUserViewPost($userId, $post->ID, $views)) {
+        $views = apply_filters(
+            'ramphor_post_views_track_history_handle',
+            null,
+            $currentViews,
+            $userId,
+            $post,
+            $userPostViews,
+            $this->postTypes
+        );
+        if ($views > 0 && Db::updateUserViewPost($userId, $post->ID, $views)) {
             $this->update_post_meta($post->ID, $post->post_type);
         }
     }

@@ -17,7 +17,7 @@ class Db
             $postType
         );
 
-        return (int)$wpdb->get_val($sql);
+        return (int)$wpdb->get_var($sql);
     }
 
     public static function getUserViews($userId, $postId, $postType = 'post')
@@ -39,8 +39,45 @@ class Db
         return $wpdb->get_row($sql);
     }
 
+    public static function checkUserViewPost($userId, $postId)
+    {
+        global $wpdb;
+        $sql = $wpdb->prepare(
+            "SELECT ID
+			FROM {$wpdb->prefix}ramphor_post_views
+			WHERE user_id=%d
+				AND post_id=%d",
+            $userId,
+            $postId,
+        );
+        $viewId = $wpdb->get_var($sql);
+        if ($viewId > 0) {
+            return $viewId;
+        }
+        return false;
+    }
+
+
+    public static function insertUserViewPost($userId, $postId, $views)
+    {
+        global $wpdb;
+        $sql = sprintf(
+            "INSERT INTO {$wpdb->prefix}ramphor_post_views(user_id, post_id, views)
+				VALUES(%d,%d,%d)",
+            $userId,
+            $postId,
+            $views
+        );
+        if ($wpdb->query($sql)) {
+            return $wpdb->insert_id;
+        }
+    }
+
     public static function updateUserViewPost($userId, $postId, $views)
     {
+        if (self::checkUserViewPost($userId, $postId) === false) {
+            return self::insertUserViewPost($userId, $postId, $views);
+        }
         global $wpdb;
         $sql = $wpdb->prepare(
             "UPDATE {$wpdb->prefix}ramphor_post_views
