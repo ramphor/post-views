@@ -1,42 +1,38 @@
 <?php
 namespace Ramphor\PostViews\Handlers;
 
+use Ramphor\PostViews\DB;
+use Ramphor\PostViews\Common;
 use Ramphor\PostViews\Abstracts\HandlerAbstract;
 
 class UserHandler extends HandlerAbstract
 {
     protected $user_id;
     protected $user_ip;
-    protected $expire_time;
-    protected $guest_expire_time;
 
-    protected $enable_guest = false;
-    protected $track_guest_cookie = false;
+    protected $expire_time = 86400;
+    protected $guest_expire_time = 86400;
+
     protected $tracking_history = false;
 
-    public function __construct($enable_guest_user = false, $tracking_history = false)
+    public function __construct($tracking_history = false)
     {
-        if ($enable_guest_user) {
-            $this->enableGuest();
-        }
         if ($tracking_history) {
             $this->enableTrackingViewHistory();
         }
     }
 
-    public function enableGuest()
-    {
-        $this->enable_guest = true;
-    }
-
-    public function trackGuestCookie()
-    {
-        $this->track_guest_cookie = true;
-    }
-
     public function setRemoteIP($ip)
     {
         $this->user_ip = $ip;
+    }
+
+    public function setUserId($user_id = null) {
+        if (is_null($user_id)) {
+            $this->user_id = get_current_user_id();
+        } else {
+            $this->user_id = $user_id;
+        }
     }
 
     /**
@@ -56,12 +52,9 @@ class UserHandler extends HandlerAbstract
      *
      * @param int $seconds
      */
-    public function setGuestExpireTime($seconds = 86400, $track_guest_cookie = false)
+    public function setGuestExpireTime($seconds = 86400)
     {
         $this->guest_expire_time = $seconds;
-        if ($track_guest_cookie) {
-            $this->trackGuestCookie();
-        }
     }
 
     public function enableTrackingViewHistory()
@@ -71,14 +64,47 @@ class UserHandler extends HandlerAbstract
 
     public function writeLog()
     {
-        if (!is_user_logged_in()) {
-            // If user is guest and counter is not allow guest user the module is return
-            if (!$this->enable_guest) {
-                return false;
-            }
-            $this->user_id = 0;
-        } else {
-            $this->user_id = get_current_user_id();
+        if (!$this->postId) {
+            return;
         }
+
+        $current_views = false;
+        if ($this->tracking_history) {
+            $current_views = DB::get_user_post_views($this->postId, $this->user_id);
+        } else {
+            $current_views = DB::get_user_post_views(
+                $this->postId,
+                $this->user_id,
+                $this->user_ip,
+                $this->user_id > 0 ? $this->expire_time : $this->guest_expire_time
+            );
+        }
+        if ($current_views === false) {
+            return false;
+        }
+
+        $views = apply_filters(
+            'ramphor_post_views',
+            $current_views + 1,
+            $this->user_id,
+            $this->user_ip
+        );
+
+        try {
+            DB::update_user_post_views($this->postId, $views, $this->user_id);
+            if ($this->tracking_history && $this->user_ip) {
+                DB::write_view_history($this->user_ip, $this->postId, $this->user_id);
+            }
+            return $views;
+        } catch(Exception $e) {
+        }
+        return false;
+    }
+
+    public function isViewed($user_id = null) {
+        if (is_null($user_id)) {
+            $user_id = get_current_user_id();
+        }
+        return DB::get_user_post_views($this->postId, $user_id) > 0;
     }
 }
