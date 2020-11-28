@@ -1,18 +1,18 @@
 <?php
 namespace Ramphor\PostViews;
 
-class Db
+class DB
 {
     public static function getTotalPostViews($postId, $postType = 'post')
     {
         global $wpdb;
         $sql = $wpdb->prepare(
             "SELECT SUM(views)
-			FROM {$wpdb->prefix}ramphor_post_views v
-			INNER JOIN {$wpdb->posts} p
-				ON p.ID=v.post_id
-			WHERE v.post_id=%d
-				AND p.post_type=%s",
+            FROM {$wpdb->prefix}ramphor_post_views v
+            INNER JOIN {$wpdb->posts} p
+                ON p.ID=v.post_id
+            WHERE v.post_id=%d
+                AND p.post_type=%s",
             $postId,
             $postType
         );
@@ -20,21 +20,23 @@ class Db
         return (int)$wpdb->get_var($sql);
     }
 
-    public static function getUserViews($userId, $postId, $postType = 'post')
+    public static function getUserViews($userId, $postId, $postType = null)
     {
         global $wpdb;
         $sql = $wpdb->prepare(
             "SELECT v.views,v.last_views
-			FROM {$wpdb->prefix}ramphor_post_views v
-			INNER JOIN {$wpdb->posts} p
-			ON p.ID=v.post_id
-			WHERE v.user_id=%d
-				AND v.post_id=%d
-				AND p.post_type=%s",
+            FROM {$wpdb->prefix}ramphor_post_views v
+            INNER JOIN {$wpdb->posts} p
+            ON p.ID=v.post_id
+            WHERE v.user_id=%d
+                AND v.post_id=%d",
             $userId,
-            $postId,
-            $postType
+            $postId
         );
+
+        if (!is_null($postType)) {
+            $sql .= $wpdb->prepare(" AND p.post_type=%s", $postType);
+        }
 
         return $wpdb->get_row($sql);
     }
@@ -44,9 +46,9 @@ class Db
         global $wpdb;
         $sql = $wpdb->prepare(
             "SELECT ID
-			FROM {$wpdb->prefix}ramphor_post_views
-			WHERE user_id=%d
-				AND post_id=%d",
+            FROM {$wpdb->prefix}ramphor_post_views
+            WHERE user_id=%d
+                AND post_id=%d",
             $userId,
             $postId,
         );
@@ -63,7 +65,7 @@ class Db
         global $wpdb;
         $sql = sprintf(
             "INSERT INTO {$wpdb->prefix}ramphor_post_views(user_id, post_id, views)
-				VALUES(%d,%d,%d)",
+                VALUES(%d,%d,%d)",
             $userId,
             $postId,
             $views
@@ -81,9 +83,9 @@ class Db
         global $wpdb;
         $sql = $wpdb->prepare(
             "UPDATE {$wpdb->prefix}ramphor_post_views
-			SET views=%s
-			WHERE user_id=%d
-				AND post_id=%d",
+                SET views=%s
+            WHERE user_id=%d
+                AND post_id=%d",
             $views,
             $userId,
             $postId
