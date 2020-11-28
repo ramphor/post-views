@@ -19,6 +19,7 @@ class Setup
         $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}ramphor_view_histories(
             client_ip BIGINT NOT NULL DEFAULT 0,
             post_id BIGINT NOT NULL,
+            user_id BIGINT NULL DEFAULT 0,
             last_views TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(client_ip)
         )";
