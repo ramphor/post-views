@@ -2,10 +2,12 @@
 namespace Ramphor\PostViews;
 
 use Ramphor\PostViews\Interfaces\Handler;
+use Ramphor\PostViews\Handlers\UserHandler;
 
 class Counter
 {
     protected $postTypes;
+    protected $userHandleIndex;
     protected $handlers = array();
 
     public function __construct($postTypes)
@@ -43,6 +45,15 @@ class Counter
     {
         if (is_a($handler, Handler::class)) {
             $this->handlers[] = $handler;
+            if (is_a($handler, UserHandler::class)) {
+                $this->userHandleIndex = max(array_keys($this->handles));
+            }
+        }
+    }
+
+    public function getUserHandler() {
+        if ($this->userHandleIndex && isset($this->handlers[$this->userHandleIndex])) {
+            return $this->handlers[$this->userHandleIndex];
         }
     }
 
