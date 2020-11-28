@@ -5,6 +5,8 @@ use Ramphor\PostViews\Abstracts\HandlerAbstract;
 
 class UserHandler extends HandlerAbstract
 {
+    protected $user_id;
+
     protected $enable_guest = false;
     protected $tracking_history = false;
 
@@ -30,5 +32,15 @@ class UserHandler extends HandlerAbstract
 
     public function writeLog()
     {
+        if (!is_user_logged_in()) {
+            // If user is guest and counter is not allow guest user the module is return
+            if (!$this->enable_guest) {
+                return false;
+            }
+            $this->user_id = 0;
+        } else {
+            $this->user_id = get_current_user_id();
+        }
+
     }
 }
