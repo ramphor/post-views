@@ -6,4 +6,6 @@ interface Handler
     public function setPostId($postId);
 
     public function writeLog();
+
+    public function isViewed();
 }
