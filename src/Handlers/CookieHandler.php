@@ -1,5 +1,9 @@
 <?php
 namespace Ramphor\PostViews\Handlers;
 
-class LocalStorage {
+use Ramphor\PostViews\Abstracts\HandlerAbstract;
+
+class CookieHandler extends HandlerAbstract {
+    public function writeLog() {
+    }
 }

@@ -1,6 +1,8 @@
 <?php
-namespace Ramphor\PostViews;
+namespace Ramphor\PostViews\Interfaces;
 
 interface Handler {
+    public function setPostId($postId);
+
     public function writeLog();
 }

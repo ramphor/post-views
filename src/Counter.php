@@ -14,11 +14,22 @@ class Counter
     }
 
     public function count() {
+        add_action('template_redirect', array($this, '_count'));
+    }
+
+    public function _count() {
+        if(is_single() && in_array(get_post_type(), $this->postTypes)) {
+            global $post;
+            foreach($this->handlers as $handler) {
+                $handler->setPostId($post->ID);
+                $handler->writeLog();
+            }
+        }
     }
 
     public function addHandle($handler) {
-        if ($handler instanceof Handler) {
-            array_push($this->handlers, $handler);
+        if (is_a($handler, Handler::class)) {
+            $this->handlers[] = $handler;
         }
     }
 

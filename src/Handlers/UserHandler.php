@@ -1,5 +1,9 @@
 <?php
 namespace Ramphor\PostViews\Handlers;
 
-class CookieHandler {
+use Ramphor\PostViews\Abstracts\HandlerAbstract;
+
+class UserHandler extends HandlerAbstract {
+    public function writeLog() {
+    }
 }
