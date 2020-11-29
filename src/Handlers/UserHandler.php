@@ -11,7 +11,6 @@ class UserHandler extends HandlerAbstract
     protected $user_ip;
 
     protected $expire_time = 86400;
-    protected $guest_expire_time = 86400;
 
     protected $tracking_history = false;
 
@@ -46,17 +45,6 @@ class UserHandler extends HandlerAbstract
         $this->expire_time = $seconds;
     }
 
-    /**
-     * Expire time use to count user view.
-     * When the view has expire time it is a new view.
-     *
-     * @param int $seconds
-     */
-    public function setGuestExpireTime($seconds = 86400)
-    {
-        $this->guest_expire_time = $seconds;
-    }
-
     public function enableTrackingViewHistory()
     {
         $this->tracking_history = true;
@@ -76,7 +64,7 @@ class UserHandler extends HandlerAbstract
                 $this->postId,
                 $this->user_id,
                 $this->user_ip,
-                $this->user_id > 0 ? $this->expire_time : $this->guest_expire_time
+                $this->expire_time
             );
         }
         if ($current_views === false) {
