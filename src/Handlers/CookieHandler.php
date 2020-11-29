@@ -4,7 +4,8 @@ namespace Ramphor\PostViews\Handlers;
 use Ramphor\PostViews\Common;
 use Ramphor\PostViews\Abstracts\HandlerAbstract;
 
-class CookieHandler extends HandlerAbstract {
+class CookieHandler extends HandlerAbstract
+{
     protected $expire_time = 86400;
 
     /**
@@ -18,7 +19,8 @@ class CookieHandler extends HandlerAbstract {
         $this->expire_time = $seconds;
     }
 
-    public function writeLog() {
+    public function writeLog()
+    {
         $viewed_posts = isset($_COOKIE[Common::POST_VIEWS_COOKIE_NAME])
             ? explode('|', $_COOKIE[Common::POST_VIEWS_COOKIE_NAME])
             : array();
@@ -35,7 +37,8 @@ class CookieHandler extends HandlerAbstract {
         );
     }
 
-    public function isViewed() {
+    public function isViewed()
+    {
         $viewed_posts = isset($_COOKIE[Common::POST_VIEWS_COOKIE_NAME])
             ? explode('|', $_COOKIE[Common::POST_VIEWS_COOKIE_NAME])
             : array();

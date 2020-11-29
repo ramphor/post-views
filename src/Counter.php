@@ -86,8 +86,9 @@ class Counter
         );
     }
 
-    public function isViewed($post_id) {
-        foreach($this->handlers as $handler) {
+    public function isViewed($post_id)
+    {
+        foreach ($this->handlers as $handler) {
             $handler->setPostId($post_id);
             if ($handler->isViewed()) {
                 return true;
