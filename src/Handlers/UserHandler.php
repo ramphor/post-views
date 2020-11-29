@@ -58,16 +58,16 @@ class UserHandler extends HandlerAbstract
 
         $current_views = false;
         if ($this->tracking_history) {
-            $current_views = DB::get_user_post_views($this->postId, $this->user_id);
-        } else {
             $current_views = DB::get_user_post_views(
                 $this->postId,
                 $this->user_id,
                 $this->user_ip,
                 $this->expire_time
             );
+        } else {
+            $current_views = DB::get_user_post_views($this->postId, $this->user_id);
         }
-        if ($current_views === false) {
+        if ($current_views <= 0) {
             return false;
         }
 
@@ -93,6 +93,12 @@ class UserHandler extends HandlerAbstract
         if (is_null($user_id)) {
             $user_id = get_current_user_id();
         }
-        return DB::get_user_post_views($this->postId, $user_id) > 0;
+
+        return DB::get_user_post_views(
+            $this->postId,
+            $user_id,
+            $this->tracking_history ? $this->user_ip : null,
+            $this->expire_time
+        ) > 0;
     }
 }
