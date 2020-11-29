@@ -31,9 +31,8 @@ class CookieHandler extends HandlerAbstract {
             Common::POST_VIEWS_COOKIE_NAME,
             implode('|', $viewed_posts),
             time() + $this->expire_time,
+            '/'
         );
-
-        var_dump($_COOKIE);die;
     }
 
     public function isViewed() {
