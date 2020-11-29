@@ -26,7 +26,8 @@ class UserHandler extends HandlerAbstract
         $this->user_ip = $ip;
     }
 
-    public function setUserId($user_id = null) {
+    public function setUserId($user_id = null)
+    {
         if (is_null($user_id)) {
             $this->user_id = get_current_user_id();
         } else {
@@ -56,6 +57,14 @@ class UserHandler extends HandlerAbstract
             return;
         }
 
+        /**
+         * Current view has 2 cases
+         *
+         * false: Current user is viewed and skip count the view
+         * number: Current user has expire view or not view post brefore so we will count this view
+         *
+         * @var boolean|int
+         */
         $current_views = false;
         if ($this->tracking_history) {
             $current_views = DB::get_user_post_views(
@@ -67,7 +76,8 @@ class UserHandler extends HandlerAbstract
         } else {
             $current_views = DB::get_user_post_views($this->postId, $this->user_id);
         }
-        if ($current_views <= 0) {
+
+        if ($current_views === false) {
             return false;
         }
 
@@ -84,12 +94,13 @@ class UserHandler extends HandlerAbstract
                 DB::write_view_history($this->user_ip, $this->postId, $this->user_id);
             }
             return $views;
-        } catch(Exception $e) {
+        } catch (Exception $e) {
         }
         return false;
     }
 
-    public function isViewed($user_id = null) {
+    public function isViewed($user_id = null)
+    {
         if (is_null($user_id)) {
             $user_id = get_current_user_id();
         }
