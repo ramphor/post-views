@@ -1,76 +1,99 @@
 <?php
 namespace Ramphor\PostViews;
 
+use Ramphor\PostViews\Interfaces\Handler;
+use Ramphor\PostViews\Handlers\UserHandler;
+use Ramphor\PostViews\Common;
+
 class Counter
 {
     protected $postTypes;
-    protected $trackUserView;
-    protected $trackHistory = true;
+    protected $handlers = array();
 
-    public function __construct($postTypes, $trackUserView = false)
+    public function __construct($postTypes)
     {
         $this->postTypes = $postTypes;
-        $this->trackUserView = $trackUserView;
     }
 
-    public function register()
+    public function count()
     {
-        add_action('template_redirect', array($this, 'count'));
-        add_action('ramphor_post_views_track_history_handle', array($this, 'track'), 10, 5);
+        add_action('template_redirect', array($this, '_count'));
     }
 
-    public function track($newViews, $currentViews, $userId, $post, $userPostViews)
+    public function _count()
     {
-        return $currentViews += 1;
+        if (is_single() && in_array(get_post_type(), $this->postTypes)) {
+            global $post;
+            $isNewView = false;
+
+            foreach ($this->handlers as $handler) {
+                $handler->setPostId($post->ID);
+                $result = $handler->writeLog();
+                if (!$isNewView && $result) {
+                    $isNewView = true;
+                }
+            }
+
+            if ($isNewView) {
+                do_action('ramphor_post_views_view_the_post', $post->ID, $this->postTypes, $result);
+                $this->updateTotalPostViews(
+                    $this->countTotalPostViews($post->ID),
+                    $post->ID
+                );
+            }
+        }
     }
 
-    public function count($post = null)
+    public function addHandle($handler)
     {
-        $post = ($post === null) ? $GLOBALS['post'] : get_post($post);
-        if (!is_single() || !$this->checkPostType($post->post_type, $this->postTypes)) {
-            return;
+        if (is_a($handler, Handler::class)) {
+            $this->handlers[] = $handler;
+        }
+    }
+
+    public function getTotalPostViews($post_id = null)
+    {
+        if (is_null($post_id)) {
+            $post_id = get_the_ID();
         }
 
-        $userId = $this->trackUserView ? get_current_user_id() : 0;
-        $userPostViews = Db::getUserViews(
-            $userId,
-            $post->ID,
-            $post->post_type
+        $post_views = get_post_meta(
+            $post_id,
+            Common::POST_VIEWS_META_KEY,
+            true,
         );
-        $currentViews = 0;
-        if (isset($userPostViews->views)) {
-            $currentViews = (int)$userPostViews->views;
-        }
-        $views = apply_filters(
-            'ramphor_post_views_track_history_handle',
-            null,
-            $currentViews,
-            $userId,
-            $post,
-            $userPostViews,
-            $this->postTypes
-        );
-        if ($views > 0 && Db::updateUserViewPost($userId, $post->ID, $views)) {
-            $this->update_post_meta($post->ID, $post->post_type);
-        }
+
+        return intval($post_views);
     }
 
-    protected function checkPostType($postType, $allowPostTypes)
+    public function countTotalPostViews($post_id = null)
     {
-        switch (gettype($allowPostTypes)) {
-            case 'array':
-                return in_array($postType, $allowPostTypes);
-            default:
-                return $postType === $allowPostTypes;
+        if (is_null($post_id)) {
+            $post_id = get_the_ID();
         }
+        return DB::get_total_views($post_id);
     }
 
-    public function update_post_meta($postId, $postType)
+    public function updateTotalPostViews($total_view, $post_id = null)
     {
+        if (is_null($post_id)) {
+            $post_id = get_the_ID();
+        }
         update_post_meta(
-            $postId,
-            Common::getPostMetaKey(),
-            Db::getTotalPostViews($postId, $postType)
+            $post_id,
+            Common::POST_VIEWS_META_KEY,
+            intval($total_view)
         );
+    }
+
+    public function isViewed($post_id)
+    {
+        foreach ($this->handlers as $handler) {
+            $handler->setPostId($post_id);
+            if ($handler->isViewed()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
