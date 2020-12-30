@@ -12,8 +12,11 @@
     "minimum-stability": "dev",
     "require": {},
     "autoload": {
-    	"psr-4": {
-    		"Ramphor\\PostViews\\": "src/"
-    	}
+        "psr-4": {
+            "Ramphor\\PostViews\\": "src/"
+        },
+        "files": [
+            "./functions.php"
+        ]
     }
 }
