@@ -12,7 +12,7 @@ class Counter
 
     public function __construct($postTypes)
     {
-        $this->postTypes = $postTypes;
+        $this->postTypes = is_array($postTypes) ? $postTypes : array($postTypes);
     }
 
     public function count()
