@@ -1,6 +1,10 @@
 # post-views
 Track visited posts and user view posts
 
+# install
+```
+composer require ramphor/post-views
+```
 
 ```
 $userHandler = new UserHandler(true);
