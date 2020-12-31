@@ -60,7 +60,7 @@ class Counter
         $post_views = get_post_meta(
             $post_id,
             Common::POST_VIEWS_META_KEY,
-            true,
+            true
         );
 
         return intval($post_views);
