@@ -111,11 +111,11 @@ class DB
                 'client_ip' => $client_ip,
                 'post_id' => $post_id,
                 'user_id' => $user_id,
-                'last_views' => current_time('mysql', 1)
+                'last_views' => current_time('mysql')
             ));
         } else {
             return $wpdb->update($wpdb->prefix . 'ramphor_view_histories', array(
-                'last_views' => current_time('mysql', 1)
+                'last_views' => current_time('mysql')
             ), array(
                 'client_ip' => $client_ip,
                 'post_id' => $post_id,

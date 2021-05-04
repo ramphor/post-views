@@ -9,25 +9,23 @@ class Counter
 {
     protected $postTypes;
     protected $handlers = array();
+    protected static $updatePostTotal = false;
 
     public function __construct($postTypes)
     {
         $this->postTypes = is_array($postTypes) ? $postTypes : array($postTypes);
     }
 
-    public function count()
+    public function count($post_id = null)
     {
-        add_action('template_redirect', array($this, '_count'));
-    }
+        $post = !is_null($post_id) ? get_post($post_id) : get_post($GLOBALS['post']);
 
-    public function _count()
-    {
-        if (is_single() && in_array(get_post_type(), $this->postTypes)) {
-            global $post;
+        if ($post && in_array($post->post_type, $this->postTypes)) {
             $isNewView = false;
+            $post_id   = $post->ID;
 
             foreach ($this->handlers as $handler) {
-                $handler->setPostId($post->ID);
+                $handler->setPostId($post_id);
                 $result = $handler->writeLog();
                 if (!$isNewView && $result) {
                     $isNewView = true;
@@ -35,11 +33,10 @@ class Counter
             }
 
             if ($isNewView) {
-                do_action('ramphor_post_views_view_the_post', $post->ID, $this->postTypes, $result);
-                $this->updateTotalPostViews(
-                    $this->countTotalPostViews($post->ID),
-                    $post->ID
-                );
+                do_action('ramphor_post_views_view_the_post', $post_id, $this->postTypes, $result);
+
+                $totalViews = $this->countTotalPostViews($post_id);
+                do_action("update_{$post->post_type}_total_views", $totalViews, $post_id);
             }
         }
     }
