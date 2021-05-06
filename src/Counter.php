@@ -21,6 +21,20 @@ class Counter
         $post = !is_null($post_id) ? get_post($post_id) : get_post($GLOBALS['post']);
 
         if ($post && in_array($post->post_type, $this->postTypes)) {
+            if (!static::$updatePostTotal) {
+                $supportPostTypes = apply_filters(
+                    'ramphor_post_views_post_types_apply_default_counter_handles',
+                    array(
+                        'post'
+                    )
+                );
+
+                foreach ($supportPostTypes as $supportPostType) {
+                    add_action("update_{$supportPostType}_total_views", array($this, 'updateTotalPostViews'), 10, 2);
+                }
+                static::$updatePostTotal = true;
+            }
+
             $isNewView = false;
             $post_id   = $post->ID;
 
